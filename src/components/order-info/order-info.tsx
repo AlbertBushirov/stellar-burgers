@@ -1,23 +1,43 @@
-import { FC, useMemo } from 'react';
+import { FC, useEffect, useMemo, useState } from 'react';
 import { Preloader } from '../ui/preloader';
 import { OrderInfoUI } from '../ui/order-info';
-import { TIngredient } from '@utils-types';
+import { TIngredient, TOrder } from '@utils-types';
+import { useDispatch, useSelector } from '../../services/store';
+import { useParams } from 'react-router-dom';
+import { ingredientsSelector } from '../../services/reducers/ingredients';
+import {
+  getOrderById,
+  orderModalSelector,
+  ordersSelector
+} from '../../services/reducers/order';
+import { setNum } from '../ui/modal/modal';
 
 export const OrderInfo: FC = () => {
-  /** TODO: взять переменные orderData и ingredients из стора */
-  const orderData = {
-    createdAt: '',
-    ingredients: [],
-    _id: '',
-    status: '',
-    name: '',
-    updatedAt: 'string',
-    number: 0
-  };
+  const dispatch = useDispatch();
+  const parameters = useParams();
+  const number = Number(parameters.number);
+  const [orderData, setOrderData] = useState<TOrder | null>(null);
+  const ingredients: TIngredient[] = useSelector(ingredientsSelector);
+  const dataModal = useSelector(orderModalSelector);
+  const data = useSelector(ordersSelector);
+  setNum(number);
 
-  const ingredients: TIngredient[] = [];
+  useEffect(() => {
+    if (number) {
+      const order: TOrder | undefined = data.find(
+        (item) => item.number === number
+      );
+      if (order) {
+        setOrderData(order);
+      } else {
+        dispatch(getOrderById(number));
+      }
+    }
+  }, [dispatch, number]);
+  useEffect(() => {
+    if (dataModal && dataModal.number === number) setOrderData(dataModal);
+  }, [dataModal, number]);
 
-  /* Готовим данные для отображения */
   const orderInfo = useMemo(() => {
     if (!orderData || !ingredients.length) return null;
 

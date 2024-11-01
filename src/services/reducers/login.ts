@@ -25,7 +25,7 @@ const initialState: IUState = {
 
 //Соединения
 export const userRegistration = createAsyncThunk(
-  'user/registration',
+  'reducers/userRegistration',
   async (data: TRegisterData) => {
     const result = await registerUserApi(data);
     setCookie('accessToken', result.accessToken);
@@ -35,7 +35,7 @@ export const userRegistration = createAsyncThunk(
 );
 
 export const userLogin = createAsyncThunk(
-  'user/login',
+  'reducers/userLogin',
   async (data: TLoginData) => {
     const result = await loginUserApi(data);
     setCookie('accessToken', result.accessToken);
@@ -45,34 +45,32 @@ export const userLogin = createAsyncThunk(
 );
 
 export const userUpdate = createAsyncThunk(
-  'user/update',
+  'reducers/userUpdate',
   async (data: Partial<TRegisterData>) => {
     await updateUserApi(data);
     return getUserApi();
   }
 );
 
-export const userLogout = createAsyncThunk('user/logout', async () => {
+export const userLogout = createAsyncThunk('userLogout', async () => {
   await logoutApi();
   localStorage.removeItem('refreshToken');
   deleteCookie('accessToken');
 });
 
 export const checkAuthorization = createAsyncThunk(
-  'user/checkAuthorization',
+  'reducers/checkAuthorization',
   async (_, { dispatch }) => {
     if (getCookie('accessToken')) {
-      try {
-        const result = await getUserApi();
-        dispatch(setUser(result.user));
-      } catch {
-        localStorage.removeItem('refreshToken');
-        deleteCookie('accessToken');
-      } finally {
-        dispatch(setAuthorization(true));
-      }
+      getUserApi()
+        .then((result) => dispatch(setUser(result.user)))
+        .catch(() => {
+          localStorage.removeItem('refreshToken');
+          deleteCookie('accessToken');
+        })
+        .finally(() => dispatch(setAuthorization(true)));
     } else {
-      dispatch(setAuthorization(false));
+      dispatch(setAuthorization(true));
     }
   }
 );
@@ -101,7 +99,8 @@ export const authSlice = createSlice({
       .addCase(userRegistration.rejected, (state, action) => {
         state.error = action.error.message;
         state.isAuthorized = false;
-      })
+      });
+    builder
       .addCase(userLogin.fulfilled, (state, action) => {
         state.user = action.payload.user;
         state.isAuthorized = true;
@@ -110,10 +109,11 @@ export const authSlice = createSlice({
       .addCase(userLogin.rejected, (state, action) => {
         state.error = action.error.message;
         state.isAuthorized = false;
-      })
-      .addCase(userUpdate.fulfilled, (state, action) => {
-        state.user = action.payload.user;
-      })
+      });
+    builder.addCase(userUpdate.fulfilled, (state, action) => {
+      state.user = action.payload.user;
+    });
+    builder
       .addCase(userLogout.fulfilled, (state) => {
         state.user = null;
       })

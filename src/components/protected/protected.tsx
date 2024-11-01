@@ -12,29 +12,24 @@ type ProtectedProps = {
 };
 
 export const Protected = ({ notAuthorized, component }: ProtectedProps) => {
-  const isAuthorized = useSelector(isAuthorizedSelector); // boolean
-  const user = useSelector(UserSelector); // TUser | null
+  const isAuthorized = useSelector(isAuthorizedSelector);
+  const user = useSelector(UserSelector);
   const location = useLocation();
 
-  // Проверка на undefined или null
-  if (isAuthorized === undefined) {
-    return <Preloader />; // Показываем прелоадер, если статус авторизации не определен
+  if (!isAuthorized) {
+    return <Preloader />; //Показываем прелоадер, если статус авторизации не определен
   }
-
   if (notAuthorized && user) {
     const { from } = location.state ?? { from: { pathname: '/' } };
     return <Navigate to={from} />;
   }
-
   if (!notAuthorized && !user) {
-    return <Navigate replace to='/login' state={{ from: location }} />;
+    return <Navigate to='/login' state={{ from: location }} />;
   }
-
-  return component; // Возвращаем переданный компонент, если все условия выполнены
+  return component; //Возвращаем переданный компонент, если все условия выполнены
 };
 
 export const IsAuthorized = Protected;
-
 export const NotAuthorized = ({
   component
 }: {

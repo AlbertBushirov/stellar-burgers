@@ -8,7 +8,7 @@ export interface IConstructorState {
 }
 
 // Начальное состояние конструктора
-const initialState: IConstructorState = {
+export const initialState: IConstructorState = {
   bun: null,
   ingredients: []
 };

@@ -17,7 +17,7 @@ interface IUState {
   error: string | undefined;
 }
 
-const initialState: IUState = {
+export const initialState: IUState = {
   user: null,
   isAuthorized: false,
   error: ''
